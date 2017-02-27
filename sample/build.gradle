@@ -1,0 +1,29 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.6"
+    }
+}
+
+apply plugin: 'application'
+apply plugin: "net.ltgt.apt"
+
+mainClassName = 'io.techery.janet.proxy.sample.ProxySample'
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+dependencies {
+    compile project(':service')
+    compile 'com.github.techery.janet-http:service:1.0.11'
+    apt 'com.github.techery.janet-http:service-compiler:1.0.11'
+    compile 'com.github.techery.janet-http:client-okhttp:1.0.11'
+    compile 'com.github.techery.janet-converters:gson:1.0.2'
+}
