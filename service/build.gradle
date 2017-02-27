@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply from: rootProject.file('gradle/plugins/maven-simple.gradle')
+
+compileJava {
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+}
+
+dependencies {
+    compile 'com.github.techery:janet:1.0.7'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.4'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.4'
+    testCompile 'org.assertj:assertj-core:3.4.1'
+}
