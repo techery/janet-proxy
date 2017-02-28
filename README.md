@@ -130,6 +130,7 @@ dependencies {
 ```
 * janet: [![](https://jitpack.io/v/techery/janet.svg)](https://jitpack.io/#techery/janet)
 * janet-proxy: [![](https://jitpack.io/v/techery/janet-proxy.svg)](https://jitpack.io/#techery/janet-proxy)
+[![Build Status](https://travis-ci.org/techery/janet-proxy.svg?branch=master)](https://travis-ci.org/techery/janet-proxy)
 
 ## License
 
