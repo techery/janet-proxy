@@ -4,7 +4,14 @@ ActionService for [Janet](https://github.com/techery/janet) which delegates acti
 ### Getting Started
 
 #### 1. Define some contract for services' actions
-E.g. contract could be anything: from marker interface to logical expression - it's totally up to you.
+Contract could be anything: from marker interface to logical expression by class name - it's totally up to you.
+
+E.g. let's use interface with String identifier:
+```java
+public interface LabeledAction {
+  String label();
+}
+```
 
 ```java
 @SomeServiceAction
@@ -65,13 +72,13 @@ OkClient client = new OkClient();
 GsonConverter converter = new GsonConverter(new Gson());
 
 Janet janet = new Janet.Builder()
-    .addService(new SampleLoggingService<LabeledAction>(new ProxyService.Builder(HttpAction.class)
+    .addService(new SampleLoggingService(new ProxyService.Builder(HttpAction.class)
         .add(
             new HttpActionService("https://api.github.com", client, converter),
-            action -> action.label().equals("github"))
+            (LabeledAction action) -> action.label().equals("github"))
         .add(
             new HttpActionService("http://xkcd.com", client, converter),
-            action -> action.label().equals("xkcd"))
+            (LabeledAction action) -> action.label().equals("xkcd"))
         .build()
     )).build();
 
