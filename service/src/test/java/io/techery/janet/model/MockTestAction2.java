@@ -1,10 +1,8 @@
 package io.techery.janet.model;
 
-import io.techery.janet.proxy.LabeledAction;
-
 @MockServiceAction
 public class MockTestAction2 implements LabeledAction {
-  @Override public String getLabel() {
+  @Override public String label() {
     return "service2";
   }
 }

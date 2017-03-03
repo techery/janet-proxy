@@ -2,12 +2,12 @@ package io.techery.janet.proxy.sample.actions;
 
 import io.techery.janet.http.annotations.HttpAction;
 import io.techery.janet.http.annotations.Response;
-import io.techery.janet.proxy.LabeledAction;
+import io.techery.janet.proxy.sample.actions.base.LabeledAction;
 
 @HttpAction("/info.0.json")
 public class XkcdAction implements LabeledAction {
 
-  @Override public String getLabel() {
+  @Override public String label() {
     return "xkcd";
   }
 

@@ -1,5 +1,5 @@
 package io.techery.janet.proxy;
 
-public interface ServiceMappingRule {
-  boolean matches(LabeledAction action);
+public interface ServiceMappingRule<T> {
+  boolean matches(T action);
 }
