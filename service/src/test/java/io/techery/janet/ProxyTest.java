@@ -6,12 +6,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import io.techery.janet.model.LabeledAction;
 import io.techery.janet.model.MockServiceAction;
 import io.techery.janet.model.MockTestAction1;
 import io.techery.janet.model.MockTestAction2;
 import io.techery.janet.model.MockTestAction3;
 import io.techery.janet.model.OtherServiceAction;
-import io.techery.janet.proxy.LabeledAction;
 import io.techery.janet.proxy.ServiceMappingRule;
 import rx.observers.TestSubscriber;
 
@@ -35,14 +35,14 @@ public class ProxyTest {
     service2 = provideService();
     janet = new Janet.Builder()
         .addService(new ProxyService.Builder(MockServiceAction.class)
-            .add(service1, new ServiceMappingRule() {
+            .add(service1, new ServiceMappingRule<LabeledAction>() {
               @Override public boolean matches(LabeledAction action) {
-                return action.getLabel().equals("service1");
+                return action.label().equals("service1");
               }
             })
-            .add(service2, new ServiceMappingRule() {
+            .add(service2, new ServiceMappingRule<LabeledAction>() {
               @Override public boolean matches(LabeledAction action) {
-                return action.getLabel().equals("service2");
+                return action.label().equals("service2");
               }
             })
             .build()
@@ -114,7 +114,7 @@ public class ProxyTest {
         when(service.getSupportedAnnotationType()).thenReturn(OtherServiceAction.class);
         new ProxyService.Builder(MockServiceAction.class)
             .add(service, new ServiceMappingRule() {
-              @Override public boolean matches(LabeledAction action) {
+              @Override public boolean matches(Object action) {
                 return true;
               }
             })

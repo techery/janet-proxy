@@ -2,34 +2,14 @@
 ActionService for [Janet](https://github.com/techery/janet) which delegates actions to another services.  
 
 ### Getting Started
-##### 1. Define service and add it to `Janet`
-```java
-SomeService service1 = new SomeService();
-SomeService service2 = new SomeService();
-//
-// service1 and service2 must process actions of same annotation type as specified for ProxyService
-//
-ActionService proxyService = new ProxyService.Builder(SomeServiceAction.class)
-        .add(service1, new ServiceMappingRule() {
-          @Override public boolean matches(LabeledAction action) {
-            return action.getLabel().equals("service1");
-          }
-        })
-        .add(service2, new ServiceMappingRule() {
-          @Override public boolean matches(LabeledAction action) {
-            return action.getLabel().equals("service2");
-          }
-        })
-        .build();
-//
-Janet janet = new Janet.Builder().addService(proxyService).build();
-```
 
-##### 2. Implement `LabeledAction` for real services' actions
+#### 1. Define some contract for services' actions
+E.g. contract could be anything: from marker interface to logical expression - it's totally up to you.
+
 ```java
 @SomeServiceAction
 public class SomeServiceAction1 implements LabeledAction {
-  @Override public String getLabel() {
+  @Override public String label() {
     return "service1";
   }
 }
@@ -38,13 +18,36 @@ public class SomeServiceAction1 implements LabeledAction {
 ```java
 @SomeServiceAction
 public class SomeServiceAction2 implements LabeledAction {
-  @Override public String getLabel() {
+  @Override public String label() {
     return "service2";
   }
 }
 ```
 
-##### 3. Use `ActionPipe` to send/observe action as usual
+#### 2. Define service and add it to `Janet`
+```java
+SomeService service1 = new SomeService();
+SomeService service2 = new SomeService();
+//
+// service1 and service2 must process actions of same annotation type as specified for ProxyService
+//
+ActionService proxyService = new ProxyService.Builder(SomeServiceAction.class)
+        .add(service1, new ServiceMappingRule<LabeledAction>() {
+          @Override public boolean matches(LabeledAction action) {
+            return action.label().equals("service1");
+          }
+        })
+        .add(service2, new ServiceMappingRule<LabeledAction>() {
+          @Override public boolean matches(LabeledAction action) {
+            return action.label().equals("service2");
+          }
+        })
+        .build();
+//
+Janet janet = new Janet.Builder().addService(proxyService).build();
+```
+
+#### 3. Use `ActionPipe` to send/observe action as usual
 ```java
 ActionPipe<SomeServiceAction1> actionPipe = janet.createPipe(SomeServiceAction1.class);
 actionPipe
@@ -62,22 +65,20 @@ OkClient client = new OkClient();
 GsonConverter converter = new GsonConverter(new Gson());
 
 Janet janet = new Janet.Builder()
-    .addService(new SampleLoggingService(new ProxyService.Builder(HttpAction.class)
+    .addService(new SampleLoggingService<LabeledAction>(new ProxyService.Builder(HttpAction.class)
         .add(
             new HttpActionService("https://api.github.com", client, converter),
-            action -> action.getLabel().equals("github"))
+            action -> action.label().equals("github"))
         .add(
             new HttpActionService("http://xkcd.com", client, converter),
-            action -> action.getLabel().equals("xkcd"))
+            action -> action.label().equals("xkcd"))
         .build()
     )).build();
 
 Observable.combineLatest(
     janet.createPipe(GithubAction.class, Schedulers.io()).createObservableResult(new GithubAction()),
     janet.createPipe(XkcdAction.class, Schedulers.io()).createObservableResult(new XkcdAction()),
-    (githubAction, xkcdAction) -> {
-      return null;
-    }
+    (githubAction, xkcdAction) -> null
 ).toBlocking().subscribe();
 ```
 

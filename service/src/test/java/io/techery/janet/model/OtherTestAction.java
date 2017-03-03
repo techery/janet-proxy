@@ -1,10 +1,8 @@
 package io.techery.janet.model;
 
-import io.techery.janet.proxy.LabeledAction;
-
 @OtherServiceAction
 public class OtherTestAction implements LabeledAction {
-  @Override public String getLabel() {
-    return "service1";
+  @Override public String label() {
+    return "some_service";
   }
 }

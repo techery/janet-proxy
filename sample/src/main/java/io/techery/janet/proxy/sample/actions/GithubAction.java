@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 import io.techery.janet.http.annotations.HttpAction;
 import io.techery.janet.http.annotations.Response;
-import io.techery.janet.proxy.LabeledAction;
+import io.techery.janet.proxy.sample.actions.base.LabeledAction;
 
 @HttpAction("/users/techery/repos")
 public class GithubAction implements LabeledAction {
 
-  @Override public String getLabel() {
+  @Override public String label() {
     return "github";
   }
 

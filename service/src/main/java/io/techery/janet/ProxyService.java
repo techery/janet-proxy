@@ -1,19 +1,18 @@
 package io.techery.janet;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
-import io.techery.janet.proxy.LabeledAction;
 import io.techery.janet.proxy.ServiceMappingRule;
 
 final public class ProxyService extends ActionService {
 
   private Class supportedAnnotation;
-  private Map<? extends ActionService, ServiceMappingRule> rules;
+  private List<ServiceRuleTuple> entries;
 
-  ProxyService(Class supportedAnnotation, Map<? extends ActionService, ServiceMappingRule> rules) {
+  ProxyService(Class supportedAnnotation, List<ServiceRuleTuple> entries) {
     this.supportedAnnotation = supportedAnnotation;
-    this.rules = rules;
+    this.entries = entries;
   }
 
   @Override protected Class getSupportedAnnotationType() {
@@ -22,8 +21,8 @@ final public class ProxyService extends ActionService {
 
   @Override void setCallback(Callback callback) {
     super.setCallback(null);
-    for (ActionService actionService : rules.keySet()) {
-      actionService.setCallback(callback);
+    for (ServiceRuleTuple tuple : entries) {
+      tuple.service.setCallback(callback);
     }
   }
 
@@ -37,34 +36,24 @@ final public class ProxyService extends ActionService {
   }
 
   private ActionService findService(ActionHolder holder) throws JanetInternalException {
-    LabeledAction action = checkAndCast(holder.action());
-    for (Map.Entry<? extends ActionService, ServiceMappingRule> entry : rules.entrySet()) {
-      if (entry.getValue().matches(action)) return entry.getKey();
+    for (ServiceRuleTuple entry : entries) {
+      if (entry.rule.matches(holder.action())) return entry.service;
     }
     throw new JanetInternalException(new IllegalArgumentException("Cant find proper service for " + holder.action()
         .getClass()
         .getName()));
   }
 
-  private static LabeledAction checkAndCast(Object action) throws JanetInternalException {
-    if (!(action instanceof LabeledAction)) {
-      throw new JanetInternalException(String.format("%s must implement %s",
-          action.getClass().getCanonicalName(), LabeledAction.class.getCanonicalName()));
-    }
-    return (LabeledAction) action;
-  }
-
   public static class Builder {
-
     private Class supportedAnnotation;
-    private Map<ActionService, ServiceMappingRule> rules;
+    private List<ServiceRuleTuple> entries;
 
     public Builder(Class supportedAnnotation) {
       if (!supportedAnnotation.isAnnotation()) {
         throw new IllegalArgumentException(supportedAnnotation.getCanonicalName() + " is not an annotation");
       }
       this.supportedAnnotation = supportedAnnotation;
-      this.rules = new HashMap<ActionService, ServiceMappingRule>();
+      this.entries = new LinkedList<ServiceRuleTuple>();
     }
 
     public Builder add(ActionService service, ServiceMappingRule rule) {
@@ -73,15 +62,24 @@ final public class ProxyService extends ActionService {
             supportedAnnotation.getCanonicalName(), service.getSupportedAnnotationType().getCanonicalName());
         throw new IllegalArgumentException(message);
       }
-      rules.put(service, rule);
+      entries.add(new ServiceRuleTuple(service, rule));
       return this;
     }
 
     public ProxyService build() {
-      if (rules.isEmpty()) throw new IllegalStateException("No service added, can't operate");
-      return new ProxyService(supportedAnnotation, rules);
+      if (entries.isEmpty()) throw new IllegalStateException("No service added, can't operate");
+      return new ProxyService(supportedAnnotation, entries);
     }
+  }
 
+  static class ServiceRuleTuple {
+    public final ActionService service;
+    public final ServiceMappingRule rule;
+
+    ServiceRuleTuple(ActionService service, ServiceMappingRule rule) {
+      this.service = service;
+      this.rule = rule;
+    }
   }
 
 }
