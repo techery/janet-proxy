@@ -20,7 +20,7 @@ final public class ProxyService extends ActionService {
   }
 
   @Override void setCallback(Callback callback) {
-    super.setCallback(null);
+    super.setCallback(callback);
     for (ServiceRuleTuple tuple : entries) {
       tuple.service.setCallback(callback);
     }
@@ -39,9 +39,9 @@ final public class ProxyService extends ActionService {
     for (ServiceRuleTuple entry : entries) {
       if (entry.rule.matches(holder.action())) return entry.service;
     }
-    throw new JanetInternalException(new IllegalArgumentException("Cant find proper service for " + holder.action()
-        .getClass()
-        .getName()));
+    throw new JanetInternalException(
+        new IllegalArgumentException("Cant find proper service for " + holder.action().getClass().getName())
+    );
   }
 
   public static class Builder {

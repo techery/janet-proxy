@@ -5,6 +5,8 @@ import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import io.techery.janet.model.LabeledAction;
 import io.techery.janet.model.MockServiceAction;
@@ -130,6 +132,29 @@ public class ProxyTest {
         janet.createPipe(MockTestAction3.class).send(new MockTestAction3());
       }
     }).hasCauseExactlyInstanceOf(JanetInternalException.class);
+  }
+
+  @Test public void checkServiceExceptionThrownGracefully() throws JanetException {
+    ActionService service = spy(ActionService.class);
+    when(service.getSupportedAnnotationType()).thenReturn(MockServiceAction.class);
+    doAnswer(new Answer() {
+      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
+        throw new JanetException(new RuntimeException("Some service exception"));
+      }
+    }).when(service).sendInternal(any(ActionHolder.class));
+    Janet janet = new Janet.Builder()
+        .addService(new ProxyService.Builder(MockServiceAction.class).add(service, new ServiceMappingRule() {
+          @Override public boolean matches(Object action) {
+            return true;
+          }
+        }).build())
+        .build();
+    //
+    TestSubscriber<MockTestAction1> subscriber = new TestSubscriber<MockTestAction1>();
+    janet.createPipe(MockTestAction1.class).createObservableResult(new MockTestAction1()).subscribe(subscriber);
+    Assertions.assertThat(subscriber.getOnErrorEvents().get(0).getCause())
+        .hasCauseExactlyInstanceOf(RuntimeException.class)
+        .hasMessageContaining("Some service exception");
   }
 
 }
